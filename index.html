@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>PE Parser and Loader Test</title>
+	<script src="pe.js"></script>
+	<script src="memory.js"></script>
+	<script>
+		// redefine "log"
+		function log(e){
+			document.getElementById("log").value += e + "\n";
+		}
+		function loadFile(url, cb){
+			var c = new XMLHttpRequest();
+			c.open("GET", url);
+			c.onload = function(){
+				cb(c.response);
+			};
+			c.responseType = "arraybuffer";
+			c.send();
+		}
+	</script>
+</head>
+<body>
+	<h1>PE Loader</h1>
+	Example: <select id="sel">
+		<option value="aslr.dll">aslr.dll</option>
+		<option value="aslr-ld.exe">aslr-ld.exe</option>
+		<option value="bximage.exe">bximage.exe</option>
+		<option value="dll.dll">dll.dll</option>
+		<option value="dll-ld.exe">dll-ld.exe</option>
+		<option value="gui.exe">gui.exe</option>
+		<option value="imports_vterm.exe">imports_vterm.exe</option>
+		<option value="normal.exe">normal.exe</option>
+		<option value="simplegui.exe">simplegui.exe</option>
+		<option value="tinydll.dll">tinydll.dll</option>
+		<option value="tinydll-ld.exe">tinydll-ld.exe</option>
+	</select>
+	<button onclick="run();">Load</button>
+	<br>
+	<textarea readonly id="log" style="height:400px; width: 600px;">
+    </textarea>
+    <hr>
+    Address: <input id="addr" type="text" />
+    <button onclick="examine();">Examine Memory</button>
+    <br>
+    <code id="result"></code>
+	<script>
+        var pe, memory;
+		function run(){
+			document.getElementById("log").value = "";
+			var f = document.getElementById("sel").value;
+			loadFile("tests/" + f, function(ab){
+                var file = new Uint8Array(ab);
+                pe = pe_parse(file, true);
+                memory = new Memory();
+                pe.load(memory);
+                document.getElementById("addr").value = "0x" + ((pe.entryPoint | pe.imageBase) >>> 0).toString(16);
+			});
+        }
+        
+        function examine(){
+            // XXX don't eval
+            var a = eval(document.getElementById("addr").value);
+            console.log(a);
+            var bytes = [];
+            for(var i=0;i<16;i++) {
+                var byt = memory.read_byte(i + a | 0).toString(16);
+                if(byt.length === 1) byt = "0" + byt;
+                bytes.push(byt);
+            }
+            document.getElementById("result").innerHTML = bytes.join(" ");
+        }
+	</script>
+</body>
+</html>
