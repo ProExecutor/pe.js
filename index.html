@@ -18,6 +18,17 @@
 			c.responseType = "arraybuffer";
 			c.send();
 		}
+        function examine(){
+            var a = parseInt(document.getElementById("addr").value, 16);
+            console.log(a);
+            var bytes = [];
+            for(var i=0;i<16;i++) {
+                var byt = memory.read_byte(i + a | 0).toString(16);
+                if(byt.length === 1) byt = "0" + byt;
+                bytes.push(byt);
+            }
+            document.getElementById("result").innerHTML = bytes.join(" ");
+        }
 	</script>
 </head>
 <body>
@@ -56,19 +67,6 @@
                 pe.load(memory);
                 document.getElementById("addr").value = "0x" + ((pe.entryPoint | pe.imageBase) >>> 0).toString(16);
 			});
-        }
-        
-        function examine(){
-            // XXX don't eval
-            var a = eval(document.getElementById("addr").value);
-            console.log(a);
-            var bytes = [];
-            for(var i=0;i<16;i++) {
-                var byt = memory.read_byte(i + a | 0).toString(16);
-                if(byt.length === 1) byt = "0" + byt;
-                bytes.push(byt);
-            }
-            document.getElementById("result").innerHTML = bytes.join(" ");
         }
 	</script>
 </body>
